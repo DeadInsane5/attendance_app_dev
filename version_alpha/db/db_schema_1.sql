@@ -1,3 +1,7 @@
+-- 0. Create db if not exists
+CREATE DATABASE IF NOT EXISTS attendance_db;
+USE attendance_db;
+
 -- 1. Department table (Independent Entity)
 CREATE TABLE department (
   dept_id INT PRIMARY KEY AUTO_INCREMENT,
