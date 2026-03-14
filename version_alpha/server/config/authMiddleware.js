@@ -1,23 +1,32 @@
-const jwt = require('jsonwebtoken');
+import jwt from "jsonwebtoken";
 
-const authMiddleware = (req, res, next) => {
+export const authMiddleware = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split(' ')[1];
+    // 1. Check for token existence
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "Unauthorized: No token provided" });
+    }
 
-        // Hardcoded secret as per current setup (no .env)
-        const SECRET_KEY = 'dmce_attendance_secret_key'; 
+    const token = authHeader.split(' ')[1];
+    const SECRET_KEY = 'dmce_attendance_secret_key'; 
 
-        jwt.verify(token, SECRET_KEY, (err, decoded) => {
-            if (err) {
-                return res.status(403).json({ message: "Forbidden: Invalid or expired token" });
-            }
-            
-            req.user = decoded; 
-            next();
+    try {
+        // 2. Use a Promise-based verification for async/await flow
+        // We verify the token and "await" the result
+        const decoded = await new Promise((resolve, reject) => {
+            jwt.verify(token, SECRET_KEY, (err, data) => {
+                if (err) reject(err);
+                resolve(data);
+            });
         });
-    } else {
-        res.status(401).json({ message: "Unauthorized: Access denied, no token provided" });
+
+        // 3. Attach user and move forward
+        req.user = decoded; 
+        next();
+        
+    } catch (error) {
+        // 4. Handle errors (Expired, Invalid, etc.) using the catch block
+        return res.status(403).json({ message: "Forbidden: Invalid or expired token" });
     }
 };
