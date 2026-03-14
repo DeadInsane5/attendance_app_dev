@@ -1,9 +1,14 @@
-import express from "express"
-import { createDepartments, getDepartments } from "../controllers/deptController.js"
+import express from "express";
+import { createDepartments, getDepartments } from "../controllers/deptController.js";
+// 1. Import the middleware
+import { authMiddleware } from "../config/authMiddleware.js";
 
-const router = express.Router()
+const router = express.Router();
 
-router.get("/departments", getDepartments)
-router.post("/departments", createDepartments)
+// Public: Anyone can see the departments
+router.get("/departments", getDepartments);
 
-export default router
+// Protected: Only authorized users can create departments
+router.post("/departments", authMiddleware, createDepartments);
+
+export default router;
